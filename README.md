@@ -1,5 +1,7 @@
 # 🐡 Fugu — UI client for the Sakana AI API
 
+![Fugu client screenshot](screenshot.jpg)
+
 A lightweight, polished local web interface to chat with the **Fugu** models from [Sakana AI](https://console.sakana.ai). Send **files** (images, PDFs, code, text), built-in **web search**, model and reasoning-effort selection, and locally stored history.
 
 The app runs entirely on your machine: a small Node server acts as a proxy to the Sakana API (your key stays server-side, never exposed to the browser) and serves the interface.
