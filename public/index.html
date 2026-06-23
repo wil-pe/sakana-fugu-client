@@ -53,7 +53,7 @@
 
       <div class="controls">
         <label class="field">
-          <span class="field-label">Modèle</span>
+          <span class="field-label" data-i18n="topbar.model">Modèle</span>
           <select id="model" class="select">
             <option value="fugu">fugu</option>
             <option value="fugu-ultra">fugu-ultra</option>
@@ -61,36 +61,36 @@
         </label>
 
         <label class="field">
-          <span class="field-label">Effort</span>
+          <span class="field-label" data-i18n="topbar.effort">Effort</span>
           <select id="effort" class="select">
             <option value="high">high</option>
             <option value="xhigh">xhigh</option>
           </select>
         </label>
 
-        <button id="webSearch" class="toggle" type="button" aria-pressed="false" title="Recherche web (API Responses)">
+        <button id="webSearch" class="toggle" type="button" aria-pressed="false" data-i18n-title="topbar.webTitle" title="Recherche web (API Responses)">
           <svg viewBox="0 0 24 24" class="ic"><path d="M12 3a9 9 0 100 18 9 9 0 000-18zM3 12h18M12 3c2.5 2.5 3.8 5.8 3.8 9s-1.3 6.5-3.8 9c-2.5-2.5-3.8-5.8-3.8-9S9.5 5.5 12 3z" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
-          Web
+          <span data-i18n="topbar.web">Web</span>
         </button>
 
         <div class="spacer"></div>
 
-        <span id="usage" class="usage" title="Tokens cumulés sur la session">—</span>
+        <span id="usage" class="usage" data-i18n-title="topbar.usageTitle" title="Tokens cumulés sur la session">—</span>
 
-        <button id="historyBtn" class="icon-btn" type="button" title="Historique des discussions" aria-label="Historique des discussions">
+        <button id="historyBtn" class="icon-btn" type="button" data-i18n-title="topbar.history" data-i18n-aria="topbar.history" title="Historique des discussions" aria-label="Historique des discussions">
           <svg viewBox="0 0 24 24" class="ic"><path d="M3 12a9 9 0 119 9 9 9 0 01-8.5-6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M3 15v-4h4M12 7v5l3 2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
 
-        <button id="themeToggle" class="icon-btn" type="button" title="Thème clair / sombre" aria-label="Basculer entre le thème clair et sombre">
+        <button id="themeToggle" class="icon-btn" type="button" data-i18n-title="topbar.themeTitle" data-i18n-aria="topbar.themeAria" title="Thème clair / sombre" aria-label="Basculer entre le thème clair et sombre">
           <svg class="ic ic-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
           <svg class="ic ic-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.6M12 18.9v2.6M4.3 4.3l1.9 1.9M17.8 17.8l1.9 1.9M2.5 12h2.6M18.9 12h2.6M4.3 19.7l1.9-1.9M17.8 6.2l1.9-1.9"/></svg>
         </button>
 
-        <button id="settingsBtn" class="icon-btn" type="button" title="Réglages" aria-label="Réglages">
+        <button id="settingsBtn" class="icon-btn" type="button" data-i18n-title="topbar.settings" data-i18n-aria="topbar.settings" title="Réglages" aria-label="Réglages">
           <svg viewBox="0 0 24 24" class="ic"><path d="M12 15.5a3.5 3.5 0 100-7 3.5 3.5 0 000 7z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M19.4 13a7.6 7.6 0 000-2l2-1.6-2-3.4-2.4 1a7.6 7.6 0 00-1.7-1l-.4-2.5h-4l-.4 2.5a7.6 7.6 0 00-1.7 1l-2.4-1-2 3.4L4.6 11a7.6 7.6 0 000 2l-2 1.6 2 3.4 2.4-1c.5.4 1.1.7 1.7 1l.4 2.5h4l.4-2.5c.6-.3 1.2-.6 1.7-1l2.4 1 2-3.4z" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
         </button>
 
-        <button id="newChat" class="ghost-btn" type="button" title="Nouvelle conversation">Nouveau</button>
+        <button id="newChat" class="ghost-btn" type="button" data-i18n-title="topbar.newTitle" data-i18n="topbar.new" title="Nouvelle conversation">Nouveau</button>
       </div>
     </header>
 
@@ -98,12 +98,12 @@
     <main id="stream" class="stream">
       <div id="welcome" class="welcome">
         <svg class="welcome-mark" aria-hidden="true"><use href="#puffer" /></svg>
-        <h1>Parlez à Fugu</h1>
-        <p>Système multi-agents de Sakana AI, en accès direct. Joignez des images, PDF ou fichiers de code&nbsp;— glissez-les ici ou utilisez le trombone.</p>
+        <h1 data-i18n="welcome.title">Parlez à Fugu</h1>
+        <p data-i18n="welcome.sub">Système multi-agents de Sakana AI, en accès direct. Joignez des images, PDF ou fichiers de code&nbsp;— glissez-les ici ou utilisez le trombone.</p>
         <div class="suggestions" id="suggestions">
-          <button class="chip-suggest">Combien de « r » dans strawberry&nbsp;?</button>
-          <button class="chip-suggest">Explique le fonctionnement de TLS</button>
-          <button class="chip-suggest">Relis ce code et propose des corrections</button>
+          <button class="chip-suggest" data-i18n="welcome.s1">Combien de « r » dans strawberry&nbsp;?</button>
+          <button class="chip-suggest" data-i18n="welcome.s2">Explique le fonctionnement de TLS</button>
+          <button class="chip-suggest" data-i18n="welcome.s3">Relis ce code et propose des corrections</button>
         </div>
       </div>
     </main>
@@ -113,19 +113,19 @@
       <div id="dropzone" class="composer">
         <div id="attachments" class="attachments" hidden></div>
         <div class="composer-row">
-          <button id="attachBtn" class="icon-btn attach" type="button" title="Joindre des fichiers" aria-label="Joindre des fichiers">
+          <button id="attachBtn" class="icon-btn attach" type="button" data-i18n-title="composer.attach" data-i18n-aria="composer.attach" title="Joindre des fichiers" aria-label="Joindre des fichiers">
             <svg viewBox="0 0 24 24" class="ic"><path d="M21 11.5l-8.5 8.5a5 5 0 01-7-7l8.5-8.5a3.3 3.3 0 014.7 4.7l-8.5 8.5a1.6 1.6 0 01-2.3-2.3l7.8-7.8" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>
           </button>
           <input id="fileInput" type="file" multiple hidden />
-          <textarea id="input" class="input" rows="1" placeholder="Écrivez un message…  (Entrée pour envoyer, Maj+Entrée pour un saut de ligne)"></textarea>
-          <button id="send" class="send" type="button" title="Envoyer" aria-label="Envoyer">
+          <textarea id="input" class="input" rows="1" data-i18n-ph="composer.placeholder" placeholder="Écrivez un message…  (Entrée pour envoyer, Maj+Entrée pour un saut de ligne)"></textarea>
+          <button id="send" class="send" type="button" data-i18n-title="composer.send" data-i18n-aria="composer.send" title="Envoyer" aria-label="Envoyer">
             <svg class="send-puffer" aria-hidden="true"><use href="#puffer" /></svg>
             <svg class="send-stop" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2" fill="currentColor"/></svg>
           </button>
         </div>
-        <div id="dropHint" class="drop-hint">Déposez les fichiers pour les joindre</div>
+        <div id="dropHint" class="drop-hint" data-i18n="composer.dropHint">Déposez les fichiers pour les joindre</div>
       </div>
-      <div class="footnote">Fugu peut se tromper. Vos messages partent vers <span class="mono">api.sakana.ai</span> via votre serveur local.</div>
+      <div class="footnote" data-i18n-html="composer.footnote">Fugu peut se tromper. Vos messages partent vers <span class="mono">api.sakana.ai</span> via votre serveur local.</div>
     </footer>
   </div>
 
@@ -133,56 +133,66 @@
   <div id="settingsModal" class="modal" hidden>
     <div class="modal-card">
       <div class="modal-head">
-        <h2>Réglages</h2>
-        <button id="closeSettings" class="icon-btn" aria-label="Fermer">
+        <h2 data-i18n="settings.title">Réglages</h2>
+        <button id="closeSettings" class="icon-btn" data-i18n-aria="common.close" aria-label="Fermer">
           <svg viewBox="0 0 24 24" class="ic"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>
         </button>
       </div>
 
+      <div class="setting setting-inline">
+        <label class="setting-label" for="langSelect" data-i18n="settings.langLabel">Langue</label>
+        <select id="langSelect" class="select">
+          <option value="fr">Français</option>
+          <option value="en">English</option>
+          <option value="es">Español</option>
+          <option value="ja">日本語</option>
+        </select>
+      </div>
+
       <div id="keyRow" class="setting" hidden>
-        <label class="setting-label" for="apiKey">Clé API Sakana</label>
-        <p class="setting-help">Aucune clé détectée dans <span class="mono">.env</span>. Saisissez-la ici (stockée uniquement dans ce navigateur).</p>
+        <label class="setting-label" for="apiKey" data-i18n="settings.keyLabel">Clé API Sakana</label>
+        <p class="setting-help" data-i18n-html="settings.keyHelp">Aucune clé détectée dans <span class="mono">.env</span>. Saisissez-la ici (stockée uniquement dans ce navigateur).</p>
         <div class="key-input">
           <input id="apiKey" class="text-input mono" type="password" placeholder="sk-…" autocomplete="off" />
-          <button id="saveKey" class="ghost-btn">Enregistrer</button>
+          <button id="saveKey" class="ghost-btn" data-i18n="settings.keySave">Enregistrer</button>
         </div>
       </div>
 
       <div class="setting">
-        <label class="setting-label" for="instructions">Instructions système</label>
-        <p class="setting-help">Message <span class="mono">developer</span> appliqué à chaque requête (optionnel).</p>
-        <textarea id="instructions" class="text-input" rows="3" placeholder="Ex. : Réponds toujours en français, de façon concise et technique."></textarea>
+        <label class="setting-label" for="instructions" data-i18n="settings.instrLabel">Instructions système</label>
+        <p class="setting-help" data-i18n-html="settings.instrHelp">Message <span class="mono">developer</span> appliqué à chaque requête (optionnel).</p>
+        <textarea id="instructions" class="text-input" rows="3" data-i18n-ph="settings.instrPh" placeholder="Ex. : Réponds toujours en français, de façon concise et technique."></textarea>
       </div>
 
       <div class="setting">
-        <label class="setting-label" for="skillInput">Skills</label>
-        <p class="setting-help">Ajoutez plusieurs compétences, méthodes ou consignes longues à appliquer à chaque réponse.</p>
-        <textarea id="skillInput" class="text-input mono tall" rows="6" placeholder="Ex. : Skill: Code reviewer&#10;- Priorise les bugs et risques&#10;- Cite les fichiers concernés&#10;- Propose des corrections concrètes"></textarea>
+        <label class="setting-label" for="skillInput" data-i18n="settings.skillsLabel">Skills</label>
+        <p class="setting-help" data-i18n="settings.skillsHelp">Ajoutez plusieurs compétences, méthodes ou consignes longues à appliquer à chaque réponse.</p>
+        <textarea id="skillInput" class="text-input mono tall" rows="6" data-i18n-ph="settings.skillsPh" placeholder="Ex. : Skill: Code reviewer&#10;- Priorise les bugs et risques&#10;- Cite les fichiers concernés&#10;- Propose des corrections concrètes"></textarea>
         <div class="skill-actions">
-          <button id="addSkill" class="ghost-btn" type="button">Ajouter le skill</button>
+          <button id="addSkill" class="ghost-btn" type="button" data-i18n="settings.addSkill">Ajouter le skill</button>
         </div>
         <div id="skillsList" class="skills-list"></div>
       </div>
 
       <div class="setting setting-inline">
         <div>
-          <label class="setting-label" for="maxTokens">Tokens de sortie max</label>
-          <p class="setting-help">Vide = défaut serveur.</p>
+          <label class="setting-label" for="maxTokens" data-i18n="settings.maxLabel">Tokens de sortie max</label>
+          <p class="setting-help" data-i18n="settings.maxHelp">Vide = défaut serveur.</p>
         </div>
-        <input id="maxTokens" class="text-input mono small" type="number" min="1" step="100" placeholder="auto" />
+        <input id="maxTokens" class="text-input mono small" type="number" min="1" step="100" data-i18n-ph="settings.maxPh" placeholder="auto" />
       </div>
 
       <div class="setting">
-        <button id="testKey" class="ghost-btn">Tester la connexion</button>
+        <button id="testKey" class="ghost-btn" data-i18n="settings.test">Tester la connexion</button>
         <span id="testResult" class="test-result"></span>
       </div>
 
       <div class="setting setting-inline">
         <div>
-          <label class="setting-label">Effacer l’historique local</label>
-          <p class="setting-help">Supprime toutes les discussions enregistrées dans ce navigateur.</p>
+          <label class="setting-label" data-i18n="settings.wipeLabel">Effacer l’historique local</label>
+          <p class="setting-help" data-i18n="settings.wipeHelp">Supprime toutes les discussions enregistrées dans ce navigateur.</p>
         </div>
-        <button id="wipe" class="danger-btn">Effacer</button>
+        <button id="wipe" class="danger-btn" data-i18n="settings.wipe">Effacer</button>
       </div>
     </div>
   </div>
@@ -190,8 +200,8 @@
   <div id="historyModal" class="modal" hidden>
     <div class="modal-card history-card">
       <div class="modal-head">
-        <h2>Historique</h2>
-        <button id="closeHistory" class="icon-btn" aria-label="Fermer">
+        <h2 data-i18n="history.title">Historique</h2>
+        <button id="closeHistory" class="icon-btn" data-i18n-aria="common.close" aria-label="Fermer">
           <svg viewBox="0 0 24 24" class="ic"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>
         </button>
       </div>
@@ -201,6 +211,7 @@
 
   <div id="toast" class="toast" hidden></div>
 
+  <script src="i18n.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

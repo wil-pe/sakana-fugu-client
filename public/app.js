@@ -38,6 +38,7 @@ const els = {
   testResult: $('#testResult'),
   wipe: $('#wipe'),
   toast: $('#toast'),
+  langSelect: $('#langSelect'),
 };
 
 const state = {
@@ -68,6 +69,7 @@ const ICON = {
 /* ───────────────────────── init ───────────────────────── */
 async function init() {
   loadState();
+  setupLanguage();
   applySettingsToUI();
   bindEvents();
   renderConversation();
@@ -80,13 +82,28 @@ async function init() {
     if (!state.hasEnvKey && !state.apiKey) {
       els.keyRow.hidden = false;
       openSettings();
-      toast('Ajoutez votre clé API Sakana pour commencer');
+      toast(t('toast.addKey'));
     } else if (!state.hasEnvKey) {
       els.keyRow.hidden = false; // allow editing the locally-stored key
     }
   } catch (e) {
-    toast('Serveur injoignable');
+    toast(t('toast.serverUnreachable'));
   }
+}
+
+/* ───────────────────────── language ───────────────────────── */
+function setupLanguage() {
+  I18N.apply();
+  els.langSelect.value = I18N.lang;
+  els.langSelect.addEventListener('change', () => I18N.setLang(els.langSelect.value));
+  // Re-render dynamic content whenever the language changes.
+  I18N.onChange(() => {
+    renderConversation();
+    renderSkillsList();
+    renderAttachments();
+    updateUsageDisplay();
+    if (!els.historyModal.hidden) renderHistory();
+  });
 }
 
 /* ───────────────────────── persistence ───────────────────────── */
@@ -127,7 +144,7 @@ function loadState() {
         .filter((c) => c && c.id && Array.isArray(c.messages))
         .map((c) => ({
           id: c.id,
-          title: c.title || 'Nouvelle discussion',
+          title: c.title || t('chat.untitled'),
           updatedAt: Number(c.updatedAt) || Date.now(),
           messages: c.messages,
           totalTokens: Number(c.totalTokens) || 0,
@@ -192,11 +209,11 @@ function persistCurrentChat() {
 
 function deriveChatTitle(messages) {
   const firstUser = messages.find((m) => m.role === 'user' && (((m.text || '').trim()) || (m.attachments || []).length));
-  if (!firstUser) return 'Nouvelle discussion';
+  if (!firstUser) return t('chat.untitled');
   const text = (firstUser.text || '').replace(/\s+/g, ' ').trim();
   if (text) return text.length > 56 ? `${text.slice(0, 55)}…` : text;
   const names = (firstUser.attachments || []).map((a) => a.name).filter(Boolean).slice(0, 2).join(', ');
-  return names || 'Discussion avec fichiers';
+  return names || t('chat.withFiles');
 }
 
 function normalizeSkills(value) {
@@ -291,7 +308,7 @@ function addSkillFromInput() {
   els.skillInput.value = '';
   renderSkillsList();
   saveState();
-  toast('Skill ajouté');
+  toast(t('toast.skillAdded'));
 }
 
 function removeSkill(index) {
@@ -299,7 +316,7 @@ function removeSkill(index) {
   state.settings.skills.splice(index, 1);
   renderSkillsList();
   saveState();
-  toast('Skill supprimé');
+  toast(t('toast.skillRemoved'));
 }
 
 function renderSkillsList() {
@@ -309,7 +326,7 @@ function renderSkillsList() {
   if (!state.settings.skills.length) {
     const empty = document.createElement('div');
     empty.className = 'skills-empty';
-    empty.textContent = 'Aucun skill ajouté.';
+    empty.textContent = t('skills.empty');
     els.skillsList.appendChild(empty);
     return;
   }
@@ -331,8 +348,8 @@ function renderSkillsList() {
     const del = document.createElement('button');
     del.className = 'skill-delete';
     del.type = 'button';
-    del.title = 'Supprimer';
-    del.setAttribute('aria-label', 'Supprimer le skill');
+    del.title = t('common.delete');
+    del.setAttribute('aria-label', t('skills.deleteAria'));
     del.innerHTML = ICON.trash;
     del.addEventListener('click', () => removeSkill(index));
 
@@ -366,7 +383,7 @@ async function handleFiles(fileList) {
     });
   } catch (e) {
     state.uploadingCount = Math.max(0, state.uploadingCount - files.length);
-    toast('Échec du téléversement des fichiers');
+    toast(t('toast.uploadFail'));
   }
   renderAttachments();
 }
@@ -382,14 +399,14 @@ function renderAttachments() {
     const thumb = a.kind === 'image' && a.dataUrl
       ? `<img src="${a.dataUrl}" alt="" />`
       : `<span class="chip-ic">${ICON.file}</span>`;
-    const sub = a.kind === 'image' ? 'image' : (a.meta?.pages ? `${a.meta.pages} p.` : fmtSize(a.size));
+    const sub = a.kind === 'image' ? t('chip.image') : (a.meta?.pages ? t('chip.pages', { n: a.meta.pages }) : fmtSize(a.size));
     chip.innerHTML = `
       ${thumb}
       <div class="chip-meta">
         <div class="chip-name">${escapeHtml(a.name)}</div>
         <div class="chip-sub">${sub}</div>
       </div>
-      <button class="chip-remove" title="Retirer">${ICON.close}</button>`;
+      <button class="chip-remove" title="${escapeHtml(t('chip.remove'))}">${ICON.close}</button>`;
     chip.querySelector('.chip-remove').addEventListener('click', () => { state.pending.splice(i, 1); renderAttachments(); });
     els.attachments.appendChild(chip);
   });
@@ -397,7 +414,7 @@ function renderAttachments() {
   if (state.uploadingCount) {
     const chip = document.createElement('div');
     chip.className = 'chip loading';
-    chip.innerHTML = `<span class="chip-ic">${ICON.file}</span><div class="chip-meta"><div class="chip-name">Traitement…</div><div class="chip-sub">${state.uploadingCount} fichier(s)</div></div>`;
+    chip.innerHTML = `<span class="chip-ic">${ICON.file}</span><div class="chip-meta"><div class="chip-name">${escapeHtml(t('chip.processing'))}</div><div class="chip-sub">${escapeHtml(t('chip.fileCount', { n: state.uploadingCount }))}</div></div>`;
     els.attachments.appendChild(chip);
   }
 }
@@ -473,7 +490,7 @@ async function runGeneration() {
     });
 
     if (!res.ok) {
-      let msg = `Erreur ${res.status}`;
+      let msg = t('error.http', { status: res.status });
       try { const j = await res.json(); if (j.error) msg = j.error; } catch (_) {}
       throw new Error(msg);
     }
@@ -503,7 +520,7 @@ async function runGeneration() {
           assistant.usage = ev.data.usage;
           if (ev.data.usage?.total_tokens) { state.totalTokens += ev.data.usage.total_tokens; updateUsageDisplay(); }
         } else if (ev.type === 'error') {
-          throw new Error(ev.data.message || 'Erreur de génération');
+          throw new Error(ev.data.message || t('error.generation'));
         } else if (ev.type === 'done') {
           // handled after loop
         }
@@ -512,7 +529,7 @@ async function runGeneration() {
 
     assistant.text = raw;
     if (!raw.trim()) {
-      view.content.innerHTML = '<div class="msg-error">Réponse vide reçue du modèle.</div>';
+      view.content.innerHTML = `<div class="msg-error">${escapeHtml(t('error.empty'))}</div>`;
     } else {
       view.content.innerHTML = renderMarkdown(raw);
       enhanceCode(view.content, true);
@@ -524,7 +541,7 @@ async function runGeneration() {
       view.content.innerHTML = renderMarkdown(raw);
       enhanceCode(view.content, true);
     } else if (aborted) {
-      view.content.innerHTML = '<div class="msg-status">Génération interrompue.</div>';
+      view.content.innerHTML = `<div class="msg-status">${escapeHtml(t('gen.interrupted'))}</div>`;
     } else {
       assistant.error = err.message;
       view.content.innerHTML = `<div class="msg-error">${escapeHtml(err.message)}</div>`;
@@ -594,7 +611,7 @@ function renderUserMessage(m) {
   msg.innerHTML = `
     <div class="msg-avatar">${ICON.user}</div>
     <div class="msg-body">
-      <div class="msg-role">Vous</div>
+      <div class="msg-role">${escapeHtml(t('role.you'))}</div>
       ${filesHtml}
       <div class="msg-content"></div>
     </div>`;
@@ -646,20 +663,20 @@ function showStatus(view, label) {
 function renderTools(view, m) {
   view.tools.innerHTML = '';
   if (m.error) {
-    addTool(view.tools, ICON.refresh, 'Réessayer', () => regenerateFrom(m));
+    addTool(view.tools, ICON.refresh, t('tool.retry'), () => regenerateFrom(m));
     return;
   }
-  addTool(view.tools, ICON.copy, 'Copier', () => {
+  addTool(view.tools, ICON.copy, t('tool.copy'), () => {
     navigator.clipboard.writeText(m.text || '');
-    toast('Copié');
+    toast(t('toast.copied'));
   });
-  addTool(view.tools, ICON.refresh, 'Régénérer', () => regenerateFrom(m));
+  addTool(view.tools, ICON.refresh, t('tool.regen'), () => regenerateFrom(m));
   if (m.usage) {
     const u = m.usage;
     const meta = document.createElement('span');
     meta.className = 'msg-meta';
     meta.textContent = `${u.input_tokens ?? '?'} ↑ · ${u.output_tokens ?? '?'} ↓ · ${u.total_tokens ?? '?'} tok`;
-    meta.title = 'Tokens entrée / sortie / total (orchestration incluse)';
+    meta.title = t('tool.metaTitle');
     view.tools.appendChild(meta);
   }
 }
@@ -678,7 +695,7 @@ function renderHistory() {
   if (!state.chats.length) {
     const empty = document.createElement('div');
     empty.className = 'history-empty';
-    empty.textContent = 'Aucune discussion enregistrée.';
+    empty.textContent = t('history.empty');
     els.historyList.appendChild(empty);
     return;
   }
@@ -692,15 +709,15 @@ function renderHistory() {
     main.className = 'history-main';
     main.type = 'button';
     main.innerHTML = `
-      <span class="history-title">${escapeHtml(chat.title || 'Nouvelle discussion')}</span>
-      <span class="history-meta">${formatChatDate(chat.updatedAt)} · ${(chat.messages || []).length} message(s)</span>`;
+      <span class="history-title">${escapeHtml(chat.title || t('chat.untitled'))}</span>
+      <span class="history-meta">${formatChatDate(chat.updatedAt)} · ${escapeHtml(t('history.msgCount', { n: (chat.messages || []).length }))}</span>`;
     main.addEventListener('click', () => loadChat(chat.id));
 
     const del = document.createElement('button');
     del.className = 'history-delete';
     del.type = 'button';
-    del.title = 'Supprimer';
-    del.setAttribute('aria-label', 'Supprimer la discussion');
+    del.title = t('common.delete');
+    del.setAttribute('aria-label', t('history.deleteAria'));
     del.innerHTML = ICON.trash;
     del.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -742,7 +759,7 @@ function deleteChat(id) {
   }
   saveState();
   renderHistory();
-  toast('Discussion supprimée');
+  toast(t('toast.chatDeleted'));
 }
 
 function addTool(container, icon, label, onClick) {
@@ -776,11 +793,11 @@ function enhanceCode(container, highlight) {
     if (!pre.querySelector('.code-copy')) {
       const btn = document.createElement('button');
       btn.className = 'code-copy';
-      btn.textContent = 'copier';
+      btn.textContent = t('code.copy');
       btn.addEventListener('click', () => {
         navigator.clipboard.writeText(code.innerText);
-        btn.textContent = 'copié ✓';
-        setTimeout(() => (btn.textContent = 'copier'), 1500);
+        btn.textContent = t('code.copied');
+        setTimeout(() => (btn.textContent = t('code.copy')), 1500);
       });
       pre.appendChild(btn);
     }
@@ -804,11 +821,11 @@ function saveApiKey() {
   const key = els.apiKey.value.trim();
   state.apiKey = key;
   try { if (key) localStorage.setItem('fugu.key', key); else localStorage.removeItem('fugu.key'); } catch (_) {}
-  toast(key ? 'Clé enregistrée' : 'Clé supprimée');
+  toast(key ? t('toast.keySaved') : t('toast.keyRemoved'));
 }
 
 async function testConnection() {
-  els.testResult.textContent = 'test…';
+  els.testResult.textContent = t('test.running');
   els.testResult.className = 'test-result';
   const headers = { 'Content-Type': 'application/json' };
   if (state.apiKey) headers['x-sakana-key'] = state.apiKey;
@@ -816,14 +833,14 @@ async function testConnection() {
     const res = await fetch('/api/test-key', { method: 'POST', headers, body: '{}' });
     const j = await res.json();
     if (j.ok) {
-      els.testResult.textContent = `OK · ${(j.models || []).join(', ') || 'connecté'}`;
+      els.testResult.textContent = `OK · ${(j.models || []).join(', ') || t('test.connected')}`;
       els.testResult.className = 'test-result ok';
     } else {
-      els.testResult.textContent = j.error || 'échec';
+      els.testResult.textContent = j.error || t('test.fail');
       els.testResult.className = 'test-result err';
     }
   } catch (e) {
-    els.testResult.textContent = 'serveur injoignable';
+    els.testResult.textContent = t('toast.serverUnreachable');
     els.testResult.className = 'test-result err';
   }
 }
@@ -861,13 +878,13 @@ function wipeAll() {
   renderHistory();
   closeSettings();
   closeHistory();
-  toast('Historique effacé');
+  toast(t('toast.historyCleared'));
 }
 
 /* ───────────────────────── misc ───────────────────────── */
 function updateUsageDisplay() {
   els.usage.textContent = state.totalTokens ? `Σ ${fmtTokens(state.totalTokens)}` : '—';
-  els.usage.title = `${state.totalTokens.toLocaleString('fr-FR')} tokens cumulés cette session`;
+  els.usage.title = t('usage.title', { n: state.totalTokens.toLocaleString(I18N.locale()) });
 }
 function fmtTokens(n) {
   if (n >= 1000) return (n / 1000).toFixed(1).replace('.0', '') + 'k';
@@ -875,13 +892,13 @@ function fmtTokens(n) {
 }
 function fmtSize(bytes) {
   if (!bytes && bytes !== 0) return '';
-  if (bytes < 1024) return bytes + ' o';
-  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + ' Ko';
-  return (bytes / 1024 / 1024).toFixed(1) + ' Mo';
+  if (bytes < 1024) return bytes + ' ' + t('size.bytes');
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + ' ' + t('size.kb');
+  return (bytes / 1024 / 1024).toFixed(1) + ' ' + t('size.mb');
 }
 function formatChatDate(ts) {
   try {
-    return new Intl.DateTimeFormat('fr-FR', {
+    return new Intl.DateTimeFormat(I18N.locale(), {
       day: '2-digit',
       month: '2-digit',
       hour: '2-digit',

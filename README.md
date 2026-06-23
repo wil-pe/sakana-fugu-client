@@ -22,6 +22,7 @@ The app runs entirely on your machine: a small Node server acts as a proxy to th
 - **Custom system instructions** and an adjustable token cap (in ⚙️ Settings).
 - **Token tracking** — usage displayed in real time.
 - **Light / dark theme** — toggle with one click (moon/sun icon), remembered; follows your system setting by default.
+- **Multilingual UI** — French, English, Spanish and Japanese; switch from ⚙️ Settings (auto-detects your browser language, remembered).
 - **Local history** — your conversations are saved in the browser (localStorage); nothing leaves your machine.
 
 ---
