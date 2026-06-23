@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fugu · Sakana AI</title>
+  <!-- Applique le thème avant le rendu pour éviter tout clignotement -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('fugu.theme');
+        if (!t) t = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;450;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.9/purify.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- pufferfish brand glyph, reused via <use> -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="puffer" viewBox="0 0 64 64">
+      <g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="30" cy="34" r="17" />
+        <!-- spikes -->
+        <path d="M30 17 v-7 M30 51 v7 M13 34 h-7 M47 34 h7 M18 22 l-5 -5 M42 22 l5 -5 M18 46 l-5 5 M42 46 l5 5" />
+        <!-- tail -->
+        <path d="M47 30 q9 -5 11 -1 q-3 5 0 12 q-5 1 -11 -5" />
+        <!-- eye -->
+        <circle cx="24" cy="30" r="2.4" fill="currentColor" stroke="none" />
+        <!-- mouth -->
+        <path d="M36 38 q4 2 7 0" />
+      </g>
+    </symbol>
+  </svg>
+
+  <div class="app">
+    <!-- ───────────────────────── top bar ───────────────────────── -->
+    <header class="topbar">
+      <div class="brand">
+        <svg class="brand-mark" aria-hidden="true"><use href="#puffer" /></svg>
+        <div class="brand-text">
+          <span class="brand-name">Fugu</span>
+          <span class="brand-sub">Sakana&nbsp;AI</span>
+        </div>
+      </div>
+
+      <div class="controls">
+        <label class="field">
+          <span class="field-label">Modèle</span>
+          <select id="model" class="select">
+            <option value="fugu">fugu</option>
+            <option value="fugu-ultra">fugu-ultra</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span class="field-label">Effort</span>
+          <select id="effort" class="select">
+            <option value="high">high</option>
+            <option value="xhigh">xhigh</option>
+          </select>
+        </label>
+
+        <button id="webSearch" class="toggle" type="button" aria-pressed="false" title="Recherche web (API Responses)">
+          <svg viewBox="0 0 24 24" class="ic"><path d="M12 3a9 9 0 100 18 9 9 0 000-18zM3 12h18M12 3c2.5 2.5 3.8 5.8 3.8 9s-1.3 6.5-3.8 9c-2.5-2.5-3.8-5.8-3.8-9S9.5 5.5 12 3z" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+          Web
+        </button>
+
+        <div class="spacer"></div>
+
+        <span id="usage" class="usage" title="Tokens cumulés sur la session">—</span>
+
+        <button id="historyBtn" class="icon-btn" type="button" title="Historique des discussions" aria-label="Historique des discussions">
+          <svg viewBox="0 0 24 24" class="ic"><path d="M3 12a9 9 0 119 9 9 9 0 01-8.5-6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M3 15v-4h4M12 7v5l3 2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+
+        <button id="themeToggle" class="icon-btn" type="button" title="Thème clair / sombre" aria-label="Basculer entre le thème clair et sombre">
+          <svg class="ic ic-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+          <svg class="ic ic-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.6M12 18.9v2.6M4.3 4.3l1.9 1.9M17.8 17.8l1.9 1.9M2.5 12h2.6M18.9 12h2.6M4.3 19.7l1.9-1.9M17.8 6.2l1.9-1.9"/></svg>
+        </button>
+
+        <button id="settingsBtn" class="icon-btn" type="button" title="Réglages" aria-label="Réglages">
+          <svg viewBox="0 0 24 24" class="ic"><path d="M12 15.5a3.5 3.5 0 100-7 3.5 3.5 0 000 7z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M19.4 13a7.6 7.6 0 000-2l2-1.6-2-3.4-2.4 1a7.6 7.6 0 00-1.7-1l-.4-2.5h-4l-.4 2.5a7.6 7.6 0 00-1.7 1l-2.4-1-2 3.4L4.6 11a7.6 7.6 0 000 2l-2 1.6 2 3.4 2.4-1c.5.4 1.1.7 1.7 1l.4 2.5h4l.4-2.5c.6-.3 1.2-.6 1.7-1l2.4 1 2-3.4z" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+        </button>
+
+        <button id="newChat" class="ghost-btn" type="button" title="Nouvelle conversation">Nouveau</button>
+      </div>
+    </header>
+
+    <!-- ───────────────────────── messages ───────────────────────── -->
+    <main id="stream" class="stream">
+      <div id="welcome" class="welcome">
+        <svg class="welcome-mark" aria-hidden="true"><use href="#puffer" /></svg>
+        <h1>Parlez à Fugu</h1>
+        <p>Système multi-agents de Sakana AI, en accès direct. Joignez des images, PDF ou fichiers de code&nbsp;— glissez-les ici ou utilisez le trombone.</p>
+        <div class="suggestions" id="suggestions">
+          <button class="chip-suggest">Combien de « r » dans strawberry&nbsp;?</button>
+          <button class="chip-suggest">Explique le fonctionnement de TLS</button>
+          <button class="chip-suggest">Relis ce code et propose des corrections</button>
+        </div>
+      </div>
+    </main>
+
+    <!-- ───────────────────────── composer ───────────────────────── -->
+    <footer class="composer-wrap">
+      <div id="dropzone" class="composer">
+        <div id="attachments" class="attachments" hidden></div>
+        <div class="composer-row">
+          <button id="attachBtn" class="icon-btn attach" type="button" title="Joindre des fichiers" aria-label="Joindre des fichiers">
+            <svg viewBox="0 0 24 24" class="ic"><path d="M21 11.5l-8.5 8.5a5 5 0 01-7-7l8.5-8.5a3.3 3.3 0 014.7 4.7l-8.5 8.5a1.6 1.6 0 01-2.3-2.3l7.8-7.8" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>
+          </button>
+          <input id="fileInput" type="file" multiple hidden />
+          <textarea id="input" class="input" rows="1" placeholder="Écrivez un message…  (Entrée pour envoyer, Maj+Entrée pour un saut de ligne)"></textarea>
+          <button id="send" class="send" type="button" title="Envoyer" aria-label="Envoyer">
+            <svg class="send-puffer" aria-hidden="true"><use href="#puffer" /></svg>
+            <svg class="send-stop" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2" fill="currentColor"/></svg>
+          </button>
+        </div>
+        <div id="dropHint" class="drop-hint">Déposez les fichiers pour les joindre</div>
+      </div>
+      <div class="footnote">Fugu peut se tromper. Vos messages partent vers <span class="mono">api.sakana.ai</span> via votre serveur local.</div>
+    </footer>
+  </div>
+
+  <!-- ───────────────────────── settings dialog ───────────────────────── -->
+  <div id="settingsModal" class="modal" hidden>
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2>Réglages</h2>
+        <button id="closeSettings" class="icon-btn" aria-label="Fermer">
+          <svg viewBox="0 0 24 24" class="ic"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>
+        </button>
+      </div>
+
+      <div id="keyRow" class="setting" hidden>
+        <label class="setting-label" for="apiKey">Clé API Sakana</label>
+        <p class="setting-help">Aucune clé détectée dans <span class="mono">.env</span>. Saisissez-la ici (stockée uniquement dans ce navigateur).</p>
+        <div class="key-input">
+          <input id="apiKey" class="text-input mono" type="password" placeholder="sk-…" autocomplete="off" />
+          <button id="saveKey" class="ghost-btn">Enregistrer</button>
+        </div>
+      </div>
+
+      <div class="setting">
+        <label class="setting-label" for="instructions">Instructions système</label>
+        <p class="setting-help">Message <span class="mono">developer</span> appliqué à chaque requête (optionnel).</p>
+        <textarea id="instructions" class="text-input" rows="3" placeholder="Ex. : Réponds toujours en français, de façon concise et technique."></textarea>
+      </div>
+
+      <div class="setting">
+        <label class="setting-label" for="skillInput">Skills</label>
+        <p class="setting-help">Ajoutez plusieurs compétences, méthodes ou consignes longues à appliquer à chaque réponse.</p>
+        <textarea id="skillInput" class="text-input mono tall" rows="6" placeholder="Ex. : Skill: Code reviewer&#10;- Priorise les bugs et risques&#10;- Cite les fichiers concernés&#10;- Propose des corrections concrètes"></textarea>
+        <div class="skill-actions">
+          <button id="addSkill" class="ghost-btn" type="button">Ajouter le skill</button>
+        </div>
+        <div id="skillsList" class="skills-list"></div>
+      </div>
+
+      <div class="setting setting-inline">
+        <div>
+          <label class="setting-label" for="maxTokens">Tokens de sortie max</label>
+          <p class="setting-help">Vide = défaut serveur.</p>
+        </div>
+        <input id="maxTokens" class="text-input mono small" type="number" min="1" step="100" placeholder="auto" />
+      </div>
+
+      <div class="setting">
+        <button id="testKey" class="ghost-btn">Tester la connexion</button>
+        <span id="testResult" class="test-result"></span>
+      </div>
+
+      <div class="setting setting-inline">
+        <div>
+          <label class="setting-label">Effacer l’historique local</label>
+          <p class="setting-help">Supprime toutes les discussions enregistrées dans ce navigateur.</p>
+        </div>
+        <button id="wipe" class="danger-btn">Effacer</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="historyModal" class="modal" hidden>
+    <div class="modal-card history-card">
+      <div class="modal-head">
+        <h2>Historique</h2>
+        <button id="closeHistory" class="icon-btn" aria-label="Fermer">
+          <svg viewBox="0 0 24 24" class="ic"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.8" fill="none"/></svg>
+        </button>
+      </div>
+      <div id="historyList" class="history-list"></div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
