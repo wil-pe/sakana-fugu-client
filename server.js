@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import multer from 'multer';
 import OpenAI from 'openai';
+import ExcelJS from 'exceljs';
 import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
 import path from 'path';
@@ -64,6 +65,30 @@ function looksTextual(buf) {
   return bad / Math.max(sample.length, 1) < 0.1;
 }
 
+// Spreadsheets (.xlsx/.xlsm) -> a readable, tab-separated text dump per sheet.
+async function extractSpreadsheet(buffer) {
+  const wb = new ExcelJS.Workbook();
+  await wb.xlsx.load(buffer);
+  const parts = [];
+  let sheets = 0;
+  wb.eachSheet((ws) => {
+    sheets++;
+    const rows = [];
+    ws.eachRow({ includeEmpty: false }, (row) => {
+      const cells = [];
+      row.eachCell({ includeEmpty: true }, (cell) => {
+        let v = cell.text;
+        if (v == null) v = '';
+        cells.push(String(v).replace(/[\t\r\n]+/g, ' ').trim());
+      });
+      while (cells.length && cells[cells.length - 1] === '') cells.pop();
+      rows.push(cells.join('\t'));
+    });
+    parts.push(`## Feuille : ${ws.name}\n${rows.join('\n')}`);
+  });
+  return { text: parts.join('\n\n').trim(), sheets };
+}
+
 function truncate(text, name) {
   if (text.length <= MAX_FILE_TEXT_CHARS) return text;
   return (
@@ -115,6 +140,25 @@ async function processFile(file) {
     }
   }
 
+  // Spreadsheets (.xlsx / .xlsm) -> extracted text per sheet.
+  if (ext === '.xlsx' || ext === '.xlsm' || /officedocument\.spreadsheetml/i.test(mime)) {
+    try {
+      const { text, sheets } = await extractSpreadsheet(file.buffer);
+      if (!text) {
+        return { kind: 'error', name: file.originalname, message: 'Classeur vide ou sans contenu lisible.' };
+      }
+      return {
+        kind: 'text',
+        name: file.originalname,
+        size: file.size,
+        text: truncate(text, file.originalname),
+        meta: { sheets },
+      };
+    } catch (e) {
+      return { kind: 'error', name: file.originalname, message: 'Échec de lecture du classeur : ' + e.message };
+    }
+  }
+
   // Text-like files (by extension or content sniffing).
   if (TEXT_LIKE_EXT.has(ext) || mime.startsWith('text/') || looksTextual(file.buffer)) {
     const text = file.buffer.toString('utf8');
@@ -124,7 +168,7 @@ async function processFile(file) {
   return {
     kind: 'error',
     name: file.originalname,
-    message: `Type non pris en charge (${mime || ext || 'inconnu'}). Formats acceptés : images, PDF, et fichiers texte/code.`,
+    message: `Type non pris en charge (${mime || ext || 'inconnu'}). Formats acceptés : images, PDF, classeurs Excel (.xlsx), et fichiers texte/code.`,
   };
 }
 

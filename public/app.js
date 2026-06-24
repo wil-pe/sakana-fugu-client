@@ -399,7 +399,11 @@ function renderAttachments() {
     const thumb = a.kind === 'image' && a.dataUrl
       ? `<img src="${a.dataUrl}" alt="" />`
       : `<span class="chip-ic">${ICON.file}</span>`;
-    const sub = a.kind === 'image' ? t('chip.image') : (a.meta?.pages ? t('chip.pages', { n: a.meta.pages }) : fmtSize(a.size));
+    const sub = a.kind === 'image'
+      ? t('chip.image')
+      : (a.meta?.pages ? t('chip.pages', { n: a.meta.pages })
+        : (a.meta?.sheets ? t('chip.sheets', { n: a.meta.sheets })
+          : fmtSize(a.size)));
     chip.innerHTML = `
       ${thumb}
       <div class="chip-meta">
