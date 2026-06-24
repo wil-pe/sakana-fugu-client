@@ -14,7 +14,7 @@ The app runs entirely on your machine: a small Node server acts as a proxy to th
 - **Attachments**:
   - 🖼️ **Images** (`.png`, `.jpg`, `.webp`, `.gif`) → analyzed by the model's vision.
   - 📄 **PDF** → text is extracted automatically and passed to the model.
-  - 📊 **Excel spreadsheets** (`.xlsx`, `.xlsm`) → every sheet is extracted as text (tab-separated) and passed to the model.
+  - 📊 **Spreadsheets** (`.xlsx`, `.xlsm`, `.xlsb`, `.xls`, `.ods`, `.dbf`, …) → every sheet is extracted as text (tab-separated) and passed to the model.
   - 📝 **Code & text** (`.js`, `.py`, `.md`, `.json`, `.csv`, `.txt`, etc.) → injected into the context.
   - Drag-and-drop, image paste (Ctrl/Cmd+V), or the paperclip button.
 - **Web search** — toggle it on with one click; the model can browse the web while answering (native Sakana tool).
@@ -82,7 +82,7 @@ Browser (interface)  ──►  Node/Express server  ──►  Sakana API (/v1/
 - The official `openai` SDK is used in compatibility mode (the Sakana API is OpenAI-compatible).
 
 ### Technical details
-- Backend: **Express 4**, **multer 2** (upload), **pdf-parse** (PDF extraction), **exceljs** (Excel extraction), **openai 4** (client), ESM.
+- Backend: **Express 4**, **multer 2** (upload), **pdf-parse** (PDF extraction), **SheetJS / xlsx** (spreadsheet extraction), **openai 4** (client), ESM.
 - Frontend: HTML/CSS/JS with no build step, `marked` + `DOMPurify` (safe Markdown), `highlight.js` (code).
 - Dark "abyss" theme, responsive, respects `prefers-reduced-motion`.
 

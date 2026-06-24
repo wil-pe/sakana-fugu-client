@@ -2,7 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import multer from 'multer';
 import OpenAI from 'openai';
-import ExcelJS from 'exceljs';
+import * as XLSX from 'xlsx';
 import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
 import path from 'path';
@@ -65,29 +65,26 @@ function looksTextual(buf) {
   return bad / Math.max(sample.length, 1) < 0.1;
 }
 
-// Spreadsheets (.xlsx/.xlsm) -> a readable, tab-separated text dump per sheet.
-async function extractSpreadsheet(buffer) {
-  const wb = new ExcelJS.Workbook();
-  await wb.xlsx.load(buffer);
+// Spreadsheets (xlsx/xls/xlsb/ods/…) -> a readable, tab-separated text dump per sheet.
+// Powered by SheetJS, which reads a broad range of legacy and modern formats.
+function extractSpreadsheet(buffer) {
+  const wb = XLSX.read(buffer, { type: 'buffer' });
   const parts = [];
   let sheets = 0;
-  wb.eachSheet((ws) => {
+  for (const name of wb.SheetNames) {
     sheets++;
-    const rows = [];
-    ws.eachRow({ includeEmpty: false }, (row) => {
-      const cells = [];
-      row.eachCell({ includeEmpty: true }, (cell) => {
-        let v = cell.text;
-        if (v == null) v = '';
-        cells.push(String(v).replace(/[\t\r\n]+/g, ' ').trim());
-      });
-      while (cells.length && cells[cells.length - 1] === '') cells.pop();
-      rows.push(cells.join('\t'));
-    });
-    parts.push(`## Feuille : ${ws.name}\n${rows.join('\n')}`);
-  });
+    const ws = wb.Sheets[name];
+    const csv = XLSX.utils.sheet_to_csv(ws, { FS: '\t', blankrows: false }).trim();
+    parts.push(`## Feuille : ${name}\n${csv}`);
+  }
   return { text: parts.join('\n\n').trim(), sheets };
 }
+
+// Formats handled by SheetJS that we expose as spreadsheet uploads.
+const SPREADSHEET_EXT = new Set([
+  '.xlsx', '.xlsm', '.xlsb', '.xls', '.xla', '.ods', '.fods', '.dbf', '.dif', '.prn', '.et', '.numbers',
+]);
+const SPREADSHEET_MIME = /(spreadsheetml|ms-excel|vnd\.ms-excel|opendocument\.spreadsheet)/i;
 
 function truncate(text, name) {
   if (text.length <= MAX_FILE_TEXT_CHARS) return text;
@@ -140,10 +137,10 @@ async function processFile(file) {
     }
   }
 
-  // Spreadsheets (.xlsx / .xlsm) -> extracted text per sheet.
-  if (ext === '.xlsx' || ext === '.xlsm' || /officedocument\.spreadsheetml/i.test(mime)) {
+  // Spreadsheets (xlsx, xls, xlsb, ods, …) -> extracted text per sheet.
+  if (SPREADSHEET_EXT.has(ext) || SPREADSHEET_MIME.test(mime)) {
     try {
-      const { text, sheets } = await extractSpreadsheet(file.buffer);
+      const { text, sheets } = extractSpreadsheet(file.buffer);
       if (!text) {
         return { kind: 'error', name: file.originalname, message: 'Classeur vide ou sans contenu lisible.' };
       }
@@ -168,7 +165,7 @@ async function processFile(file) {
   return {
     kind: 'error',
     name: file.originalname,
-    message: `Type non pris en charge (${mime || ext || 'inconnu'}). Formats acceptés : images, PDF, classeurs Excel (.xlsx), et fichiers texte/code.`,
+    message: `Type non pris en charge (${mime || ext || 'inconnu'}). Formats acceptés : images, PDF, tableurs (xlsx, xls, xlsb, ods…), et fichiers texte/code.`,
   };
 }
 
